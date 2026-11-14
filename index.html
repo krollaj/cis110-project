@@ -3,432 +3,569 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Designing Your Life — Interactive HUD</title>
+  <title>Holonet Life-Design Command Console</title>
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-deep: #060913;
-      --panel-bg: rgba(11, 18, 36, 0.72);
-      --health: #2ce6a8;
-      --health-glow: rgba(44, 230, 168, 0.35);
-      --work: #4da6ff;
-      --work-glow: rgba(77, 166, 255, 0.35);
-      --play: #ff6b8b;
-      --play-glow: rgba(255, 107, 139, 0.35);
-      --love: #b97aff;
-      --love-glow: rgba(185, 122, 255, 0.35);
-      --text-main: #e6f0ff;
-      --text-dim: #8a9ec2;
+      --bg-space: #060913;
+      --panel-bg: rgba(13, 21, 38, 0.85);
+      --border-glow: #38bdf8;
+      --jedi-blue: #38bdf8;
+      --rebel-amber: #f59e0b;
+      --sabre-green: #22c55e;
+      --sith-red: #ef4444;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background-color: var(--bg-deep);
+      background-color: var(--bg-space);
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+        radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 1px),
+        linear-gradient(180deg, #04070f 0%, #0b1326 100%);
+      background-size: 350px 350px, 200px 200px, 100% 100%;
+      background-position: 0 0, 40px 60px, 0 0;
       color: var(--text-main);
       font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      line-height: 1.5;
       min-height: 100vh;
-      overflow-x: hidden;
-      background-image: 
-        radial-gradient(circle at 18% 22%, rgba(44, 230, 168, 0.16) 0%, transparent 32%), 
-        radial-gradient(circle at 82% 20%, rgba(77, 166, 255, 0.16) 0%, transparent 32%), 
-        radial-gradient(circle at 20% 80%, rgba(255, 107, 139, 0.18) 0%, transparent 34%), 
-        radial-gradient(circle at 80% 80%, rgba(185, 122, 255, 0.18) 0%, transparent 34%), 
-        radial-gradient(circle at 50% 50%, rgba(255, 210, 180, 0.08) 0%, transparent 45%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      padding: 2rem 1rem 4rem;
     }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image: 
-        radial-gradient(1px 1px at 10% 15%, #fff, transparent), 
-        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,255,255,0.8), transparent), 
-        radial-gradient(1px 1px at 40% 10%, #fff, transparent), 
-        radial-gradient(2px 2px at 65% 30%, rgba(180,220,255,0.9), transparent), 
-        radial-gradient(1px 1px at 85% 60%, #fff, transparent), 
-        radial-gradient(1.5px 1.5px at 50% 85%, #fff, transparent), 
-        radial-gradient(1px 1px at 15% 75%, rgba(255,200,220,0.8), transparent);
-      background-size: 350px 350px;
-      opacity: 0.55;
-      pointer-events: none;
-      z-index: 0;
+
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
     }
-    .hud-wrapper {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 1440px;
-      display: grid;
-      grid-template-columns: 1fr 280px 1fr;
-      grid-template-rows: auto auto;
-      gap: 22px;
-      align-items: stretch;
-    }
-    .hud-panel {
+
+    /* Header & Pilot Bar */
+    header {
+      border: 1px solid rgba(56, 189, 248, 0.4);
       background: var(--panel-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      padding: 18px 22px;
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
       position: relative;
-      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      overflow: hidden;
     }
-    .hud-panel:hover { transform: translateY(-2px); }
-    .panel-health { border-color: rgba(44, 230, 168, 0.45); box-shadow: 0 0 25px rgba(44, 230, 168, 0.1), inset 0 0 20px rgba(44, 230, 168, 0.06); }
-    .panel-work { border-color: rgba(77, 166, 255, 0.45); box-shadow: 0 0 25px rgba(77, 166, 255, 0.1), inset 0 0 20px rgba(77, 166, 255, 0.06); }
-    .panel-play { border-color: rgba(255, 107, 139, 0.45); box-shadow: 0 0 25px rgba(255, 107, 139, 0.1), inset 0 0 20px rgba(255, 107, 139, 0.06); }
-    .panel-love { border-color: rgba(185, 122, 255, 0.45); box-shadow: 0 0 25px rgba(185, 122, 255, 0.1), inset 0 0 20px rgba(185, 122, 255, 0.06); }
-    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 10px; margin-bottom: 14px; }
-    .panel-title { font-family: 'Orbitron', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: 3px; }
-    .panel-health .panel-title { color: var(--health); text-shadow: 0 0 10px var(--health-glow); }
-    .panel-work .panel-title { color: var(--work); text-shadow: 0 0 10px var(--work-glow); }
-    .panel-play .panel-title { color: var(--play); text-shadow: 0 0 10px var(--play-glow); }
-    .panel-love .panel-title { color: var(--love); text-shadow: 0 0 10px var(--love-glow); }
-    .score-badge { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; padding: 3px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); }
-    .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .widget-box { background: rgba(5, 10, 22, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; }
-    .widget-label { font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: flex; justify-content: space-between; }
-    .slider-row { margin-bottom: 8px; }
-    .slider-row:last-child { margin-bottom: 0; }
-    .slider-meta { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 3px; }
-    input[type="range"] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 4px;
-      outline: none;
-      cursor: pointer;
+
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--jedi-blue), var(--rebel-amber), transparent);
     }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    .panel-health input[type="range"]::-webkit-slider-thumb { background: var(--health); box-shadow: 0 0 8px var(--health); }
-    .panel-work input[type="range"]::-webkit-slider-thumb { background: var(--work); box-shadow: 0 0 8px var(--work); }
-    .panel-play input[type="range"]::-webkit-slider-thumb { background: var(--play); box-shadow: 0 0 8px var(--play); }
-    .panel-love input[type="range"]::-webkit-slider-thumb { background: var(--love); box-shadow: 0 0 8px var(--love); }
-    .gauges-row { display: flex; justify-content: space-around; align-items: center; padding: 6px 0; }
-    .gauge {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
+
+    .header-top {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.78rem;
-      position: relative;
-      background: rgba(0,0,0,0.4);
-    }
-    .gauge span { font-size: 0.6rem; color: var(--text-dim); font-family: 'Rajdhani', sans-serif; }
-    .center-column {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
       justify-content: space-between;
-      padding: 10px 0;
-      gap: 16px;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
-    .compass-ring {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      border: 2px solid rgba(160, 200, 255, 0.35);
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.75rem;
+      letter-spacing: 2px;
+      color: var(--jedi-blue);
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 750px;
+    }
+
+    .pilot-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .meta-field {
       display: flex;
       align-items: center;
-      justify-content: center;
-      position: relative;
-      background: radial-gradient(circle, rgba(77,166,255,0.12), transparent 70%);
-      box-shadow: 0 0 25px rgba(77, 166, 255, 0.15);
-    }
-    .compass-needle {
-      width: 4px;
-      height: 95px;
-      background: linear-gradient(to bottom, #ff6b8b 50%, #4da6ff 50%);
+      gap: 0.5rem;
+      background: rgba(6, 9, 19, 0.7);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.4rem 0.75rem;
       border-radius: 4px;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .compass-label { position: absolute; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; color: var(--text-dim); }
-    .compass-label.n { top: 6px; }
-    .compass-label.s { bottom: 6px; }
-    .compass-label.e { right: 8px; }
-    .compass-label.w { left: 8px; }
-    .core-medallion {
-      width: 250px;
-      height: 250px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #fff6eb 0%, #f5c6c6 38%, #90b4e8 72%, #2a3959 100%);
-      box-shadow: 0 0 45px rgba(255, 190, 180, 0.45), 0 0 85px rgba(130, 170, 255, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.8);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 20px;
-      color: #151c2e;
-      position: relative;
-      border: 3px solid rgba(255, 255, 255, 0.65);
+
+    .meta-field label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      color: var(--rebel-amber);
+      letter-spacing: 1px;
     }
-    .core-medallion h1 { font-family: 'Orbitron', sans-serif; font-size: 1.35rem; font-weight: 900; line-height: 1.25; letter-spacing: 1.5px; margin-bottom: 8px; }
-    .alignment-readout { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700; background: rgba(21, 28, 46, 0.12); padding: 4px 12px; border-radius: 12px; }
-    .life-alignment-bar { width: 100%; text-align: center; }
-    .alignment-icons { display: flex; justify-content: center; gap: 14px; margin-top: 8px; font-size: 1.2rem; }
-    .note-input {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 6px;
-      padding: 6px 8px;
+
+    .meta-field input {
+      background: transparent;
+      border: none;
       color: var(--text-main);
       font-family: 'Rajdhani', sans-serif;
-      font-size: 0.9rem;
-      margin-top: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      width: 140px;
+      outline: none;
     }
-    .note-input:focus { outline: none; border-color: var(--work); }
-    .reset-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      color: var(--text-dim);
+
+    /* Telemetry Overview Panel */
+    .telemetry-panel {
+      background: var(--panel-bg);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      padding: 6px 14px;
-      border-radius: 20px;
-      cursor: pointer;
+      font-size: 1.15rem;
+      color: var(--rebel-amber);
+      letter-spacing: 1.5px;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+      padding-bottom: 0.5rem;
+    }
+
+    .gauges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .gauge-card {
+      background: rgba(6, 9, 19, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 6px;
+      padding: 1rem;
+    }
+
+    .gauge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .gauge-name {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
       letter-spacing: 1px;
+    }
+
+    .gauge-score {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background: #1e293b;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 50%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--jedi-blue);
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-block;
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Quadrant Cards */
+    .quadrants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .quadrants-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sector-card {
+      background: var(--panel-bg);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sector-card.health { border-top: 3px solid var(--sabre-green); }
+    .sector-card.work   { border-top: 3px solid var(--jedi-blue); }
+    .sector-card.play   { border-top: 3px solid var(--rebel-amber); }
+    .sector-card.love   { border-top: 3px solid #ec4899; }
+
+    .sector-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+    }
+
+    .sector-header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .prompt-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .prompt-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--jedi-blue);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 68px;
+      background: rgba(6, 9, 19, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 5px;
+      padding: 0.65rem;
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--jedi-blue);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+    }
+
+    /* Navicomputer Diagnostics */
+    .navicomputer {
+      background: var(--panel-bg);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* Controls Footer */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 0.65rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
       transition: all 0.2s;
     }
-    .reset-btn:hover { color: #fff; border-color: #fff; background: rgba(255, 255, 255, 0.1); }
-    @media (max-width: 1100px) {
-      .hud-wrapper { grid-template-columns: 1fr; grid-template-rows: auto; }
-      .center-column { grid-column: 1; grid-row: 1; }
+
+    .btn-primary {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--jedi-blue);
+      border: 1px solid var(--jedi-blue);
+    }
+
+    .btn-primary:hover {
+      background: var(--jedi-blue);
+      color: #060913;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--sith-red);
+      border: 1px solid var(--sith-red);
+    }
+
+    .btn-danger:hover {
+      background: var(--sith-red);
+      color: white;
+    }
+
+    .save-status {
+      font-size: 0.9rem;
+      color: var(--sabre-green);
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <div class="hud-wrapper">
-    <div class="hud-panel panel-health">
-      <div class="panel-header">
-        <span class="panel-title">HEALTH</span>
-
-82%
-
-
-
-BIO METRIC72 BPM
-
-80%SLEEP
-85%VITALITY
-
-
-
-VITAL GAUGESSYNCED
-
-Sleep Quality80%
-
-
-
-Recovery78%
-
-
-
-
-
-FITNESS ACTIVITYACTIVE
-
-Movement88%
-
-
-
-Nutrition82%
-
-
-
-N
-S
-E
-W
-
-DESIGNING YOUR LIFE
-BALANCE: 79%
-
-✦ ❖ ☀ ♥
-
-RESET DEFAULTS
-WORK
-76%
-
-
-
-TIMELINEQ4 ROADMAP
-
-Deep Focus75%
-
-
-
-Milestone Flow80%
-
-
-
-
-PROJECT PROGRESSON TRACK
-
-Skill Mastery72%
-
-
-
-Purpose Alignment78%
-
-
-
-
-
-CURRENT NORTH STAR FOCUSAUTO-SAVED
-
-
-PLAY
-74%
-
-
-
-JOY ACTIVITYSPARK
-
-76%JOY
-72%CURIOSITY
-
-
-
-CREATIVE SPARKFLOW
-
-Creative Expression76%
-
-
-
-Exploration & Wonder72%
-
-
-
-
-
-HOBBY & ADVENTURE LOGAUTO-SAVED
-
-
-LOVE
-84%
-
-
-
-CONNECTION ORBITHARMONY
-
-Inner Circle88%
-
-
-
-Community Balance80%
-
-
-
-
-EMOTIONAL & COMMUNITYRESONANCE
-Nurture close relationships and balanced community engagement.
-
-
-
-CONNECTION INTENTIONAUTO-SAVED
-
-
-
-const defaultState = {
-health: { sleep: 80, recovery: 78, fitness: 88, nutrition: 82 },
-work: { focus: 75, milestone: 80, mastery: 72, purpose: 78 },
-play: { creative: 76, explore: 72 },
-love: { circle: 88, community: 80 },
-notes: {
-work: "Ship meaningful creative work with steady energy",
-play: "Unplugged weekend nature walk & sketching",
-love: "Host dinner with close friends"
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="header-top">
+        <div>
+          <h1>Holonet Life-Design Console</h1>
+          <p class="subtitle">Audit your starfighter systems across Health, Work, Play, and Love. Detect Gravity Problems and plot your next hyperspace jump.</p>
+        </div>
+        <div class="pilot-meta">
+          <div class="meta-field">
+            <label for="pilotName">PILOT:</label>
+            <input type="text" id="pilotName" data-save placeholder="Commander..." />
+          </div>
+          <div class="meta-field">
+            <label for="stardate">STARDATE:</label>
+            <input type="date" id="stardate" data-save />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TELEMETRY GAUGES -->
+    <section class="telemetry-panel">
+      <div class="section-title">
+        <span>SYSTEM TELEMETRY (0 – 10 POWER LEVELS)</span>
+        <span id="overallStatus" style="font-size: 0.85rem; color: var(--jedi-blue);">ALL SYSTEMS NOMINAL</span>
+      </div>
+      <div class="gauges-grid">
+        <!-- Health Gauge -->
+        <div class="gauge-card">
+          <div class="gauge-header">
+            <span class="gauge-name" style="color: var(--sabre-green);">HEALTH // SHIELDS</span>
+5/10
+
+
+
+Shields Holding
+WORK // HYPERDRIVE
+5/10
+
+
+
+Sublight Cruise
+PLAY // THRUSTERS
+5/10
+
+
+
+R2 Unit Standby
+LOVE // COMMS ARRAY
+5/10
+
+
+
+Signal Clear
+
+SECTOR 1: HEALTH (Deflector Shields & Hull)
+Physical vitality, sleep cycles, nutrition, mental clarity, and emotional resilience.
+
+Current Sensor Reading
+Hull Breaches (Energy Drains)
+Bacta Tank Protocol (Next Micro-Action)
+SECTOR 2: WORK (Hyperdrive & Engines)
+How you contribute, earn, learn, or lead—including career, side quests, and volunteering.
+
+Current Sensor Reading
+Jedi Flow vs. Dagobah Friction
+Next Hyperspace Jump (Prototype Action)
+SECTOR 3: PLAY (Thrusters & Astromech Joy)
+Activities done purely for joy, curiosity, and fun—with zero pressure to be productive.
+
+Current Sensor Reading
+Imperial Guilt Check
+Cantina / Podracing Protocol (Next Micro-Action)
+SECTOR 4: LOVE (Life Support & Comms Array)
+Connections with partners, family, friends, community, pets, and your inner self.
+
+Current Sensor Reading
+Comms Interference
+Rebel Alliance Protocol (Next Micro-Action)
+NAVICOMPUTER DIAGNOSTICS // REFLECTION
+
+
+1. Gravity Problems (Black Holes You Cannot Control)
+1. Anchor Problems (Actionable Targets)
+1. The +2 Power Boost
+● HOLONET LINK ACTIVE — AUTO-SAVED TO LOCAL MEMORY
+
+Export Mission Log (.MD)
+Purge Memory Banks
+
+
+const sectors = ['health', 'work', 'play', 'love'];
+const STORAGE_KEY = 'holonet_life_dashboard_v1';
+// Set default date if empty
+const dateInput = document.getElementById('stardate');
+if (!dateInput.value) {
+dateInput.value = new Date().toISOString().split('T')[0];
 }
-};
-function cloneDefault() {
-return JSON.parse(JSON.stringify(defaultState));
+function getStatusLabel(sector, val) {
+if (val <= 3) return { text: 'CRITICAL // LOW POWER', color: '#ef4444' };
+if (val <= 6) return { text: 'NOMINAL // CRUISING', color: '#f59e0b' };
+return { text: 'OPTIMAL // FULL POWER', color: '#22c55e' };
 }
-function loadState() {
-try {
-const saved = localStorage.getItem("dyl_hud_state");
-return saved ? JSON.parse(saved) : cloneDefault();
-} catch (e) {
-return cloneDefault();
-}
-}
-function saveState(data) {
-try {
-localStorage.setItem("dyl_hud_state", JSON.stringify(data));
-} catch (e) {}
-}
-let state = loadState();
-function avg(obj) {
-const vals = Object.values(obj);
-return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-}
-function updateUI() {
-document.querySelectorAll('input[type="range"]').forEach(slider => {
-const { cat, key } = slider.dataset;
-const val = state[cat][key];
-slider.value = val;
-const lbl = document.getElementById(lbl-${key});
-if (lbl) lbl.textContent = ${val}%;
+function updateGauges() {
+let total = 0;
+sectors.forEach(sec => {
+const slider = document.getElementById(slider-${sec});
+const val = parseInt(slider.value, 10);
+total += val;
+const valEl = document.getElementById(val-${sec});
+const barEl = document.getElementById(bar-${sec});
+const statusEl = document.getElementById(status-${sec});
+const statusInfo = getStatusLabel(sec, val);
+valEl.textContent = ${val}/10;
+barEl.style.width = ${val * 10}%;
+barEl.style.backgroundColor = statusInfo.color;
+statusEl.textContent = statusInfo.text;
+statusEl.style.color = statusInfo.color;
 });
-document.getElementById("sleep-val").textContent = ${state.health.sleep}%;
-document.getElementById("energy-val").textContent = ${Math.round((state.health.recovery + state.health.fitness) / 2)}%;
-document.getElementById("joy-val").textContent = ${state.play.creative}%;
-document.getElementById("curiosity-val").textContent = ${state.play.explore}%;
-const hAvg = avg(state.health);
-const wAvg = avg(state.work);
-const pAvg = avg(state.play);
-const lAvg = avg(state.love);
-document.getElementById("health-total").textContent = ${hAvg}%;
-document.getElementById("work-total").textContent = ${wAvg}%;
-document.getElementById("play-total").textContent = ${pAvg}%;
-document.getElementById("love-total").textContent = ${lAvg}%;
-const total = Math.round((hAvg + wAvg + pAvg + lAvg) / 4);
-document.getElementById("overall-score").textContent = BALANCE: ${total}%;
-const angle = ((wAvg + lAvg) - (hAvg + pAvg)) * 1.2;
-document.getElementById("compass-needle").style.transform = rotate(${angle}deg);
-document.getElementById("work-note").value = state.notes.work || "";
-document.getElementById("play-note").value = state.notes.play || "";
-document.getElementById("love-note").value = state.notes.love || "";
-saveState(state);
+const avg = (total / 4).toFixed(1);
+document.getElementById('overallStatus').textContent = FLEET READINESS: ${avg} / 10;
 }
-document.querySelectorAll('input[type="range"]').forEach(slider => {
-slider.addEventListener("input", (e) => {
-const { cat, key } = e.target.dataset;
-state[cat][key] = Number(e.target.value);
-updateUI();
+function saveData() {
+const data = {};
+document.querySelectorAll('[data-save]').forEach(el => {
+data[el.id] = el.value;
 });
-});
-["work", "play", "love"].forEach(id => {
-const noteElem = document.getElementById(${id}-note);
-if (noteElem) {
-noteElem.addEventListener("input", (e) => {
-state.notes[id] = e.target.value;
-saveState(state);
+localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+const status = document.getElementById('saveStatus');
+status.textContent = '● TRANSMITTING TO HOLONET... SAVED';
+setTimeout(() => {
+status.textContent = '● HOLONET LINK ACTIVE — AUTO-SAVED TO LOCAL MEMORY';
+}, 1200);
+}
+function loadData() {
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) {
+const data = JSON.parse(saved);
+Object.keys(data).forEach(id => {
+const el = document.getElementById(id);
+if (el) el.value = data[id];
 });
 }
+updateGauges();
+}
+function resetConsole() {
+if (confirm('Are you sure you want to purge all Holonet log entries and reset gauges?')) {
+localStorage.removeItem(STORAGE_KEY);
+document.querySelectorAll('textarea, input[type="text"]').forEach(el => el.value = '');
+sectors.forEach(sec => document.getElementById(slider-${sec}).value = 5);
+dateInput.value = new Date().toISOString().split('T')[0];
+updateGauges();
+}
+}
+function exportMarkdown() {
+const pilot = document.getElementById('pilotName').value || 'Commander';
+const date = document.getElementById('stardate').value;
+const md = `# HOLONET LIFE-DESIGN MISSION LOG
+Pilot: ${pilot} | Stardate: ${date}
+
+SYSTEM TELEMETRY
+
+• Health (Deflector Shields): ${document.getElementById('slider-health').value}/10
+• Work (Hyperdrive): ${document.getElementById('slider-work').value}/10
+• Play (Sublight Thrusters): ${document.getElementById('slider-play').value}/10
+• Love (Comms Array): ${document.getElementById('slider-love').value}/10
+
+SECTOR 1: HEALTH
+
+• Sensor Reading: ${document.getElementById('health-reading').value}
+• Hull Breaches: ${document.getElementById('health-drains').value}
+• Bacta Tank Protocol: ${document.getElementById('health-action').value}
+
+SECTOR 2: WORK
+
+• Sensor Reading: ${document.getElementById('work-reading').value}
+• Jedi Flow vs. Friction: ${document.getElementById('work-flow').value}
+• Next Hyperspace Jump: ${document.getElementById('work-action').value}
+
+SECTOR 3: PLAY
+
+• Sensor Reading: ${document.getElementById('play-reading').value}
+• Imperial Guilt Check: ${document.getElementById('play-guilt').value}
+• Cantina Protocol: ${document.getElementById('play-action').value}
+
+SECTOR 4: LOVE
+
+• Sensor Reading: ${document.getElementById('love-reading').value}
+• Comms Interference: ${document.getElementById('love-interference').value}
+• Rebel Alliance Protocol: ${document.getElementById('love-action').value}
+
+NAVICOMPUTER DIAGNOSTICS
+
+• Gravity Problems: ${document.getElementById('diag-gravity').value}
+• Anchor Problems: ${document.getElementById('diag-anchor').value}
+• The +2 Power Boost: ${document.getElementById('diag-boost').value}
+; const blob = new Blob([md], { type: 'text/markdown' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = holonet-log-${date}.md`;
+a.click();
+URL.revokeObjectURL(url);
+}// Event listeners
+document.querySelectorAll('[data-save]').forEach(el => {
+el.addEventListener('input', () => {
+if (el.type === 'range') updateGauges();
+saveData();
 });
-document.getElementById("reset-btn").addEventListener("click", () => {
-state = cloneDefault();
-updateUI();
-});
-updateUI();
+});loadData();
+
