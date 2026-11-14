@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Designing Your Life — Interactive HUD</title>
+  <style>
+    :root {
+      --bg-deep: #060913;
+      --panel-bg: rgba(11, 18, 36, 0.72);
+      --health: #2ce6a8;
+      --health-glow: rgba(44, 230, 168, 0.35);
+      --work: #4da6ff;
+      --work-glow: rgba(77, 166, 255, 0.35);
+      --play: #ff6b8b;
+      --play-glow: rgba(255, 107, 139, 0.35);
+      --love: #b97aff;
+      --love-glow: rgba(185, 122, 255, 0.35);
+      --text-main: #e6f0ff;
+      --text-dim: #8a9ec2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 18% 22%, rgba(44, 230, 168, 0.16) 0%, transparent 32%), 
+        radial-gradient(circle at 82% 20%, rgba(77, 166, 255, 0.16) 0%, transparent 32%), 
+        radial-gradient(circle at 20% 80%, rgba(255, 107, 139, 0.18) 0%, transparent 34%), 
+        radial-gradient(circle at 80% 80%, rgba(185, 122, 255, 0.18) 0%, transparent 34%), 
+        radial-gradient(circle at 50% 50%, rgba(255, 210, 180, 0.08) 0%, transparent 45%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(1px 1px at 10% 15%, #fff, transparent), 
+        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,255,255,0.8), transparent), 
+        radial-gradient(1px 1px at 40% 10%, #fff, transparent), 
+        radial-gradient(2px 2px at 65% 30%, rgba(180,220,255,0.9), transparent), 
+        radial-gradient(1px 1px at 85% 60%, #fff, transparent), 
+        radial-gradient(1.5px 1.5px at 50% 85%, #fff, transparent), 
+        radial-gradient(1px 1px at 15% 75%, rgba(255,200,220,0.8), transparent);
+      background-size: 350px 350px;
+      opacity: 0.55;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hud-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1440px;
+      display: grid;
+      grid-template-columns: 1fr 280px 1fr;
+      grid-template-rows: auto auto;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .hud-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 18px 22px;
+      position: relative;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hud-panel:hover { transform: translateY(-2px); }
+    .panel-health { border-color: rgba(44, 230, 168, 0.45); box-shadow: 0 0 25px rgba(44, 230, 168, 0.1), inset 0 0 20px rgba(44, 230, 168, 0.06); }
+    .panel-work { border-color: rgba(77, 166, 255, 0.45); box-shadow: 0 0 25px rgba(77, 166, 255, 0.1), inset 0 0 20px rgba(77, 166, 255, 0.06); }
+    .panel-play { border-color: rgba(255, 107, 139, 0.45); box-shadow: 0 0 25px rgba(255, 107, 139, 0.1), inset 0 0 20px rgba(255, 107, 139, 0.06); }
+    .panel-love { border-color: rgba(185, 122, 255, 0.45); box-shadow: 0 0 25px rgba(185, 122, 255, 0.1), inset 0 0 20px rgba(185, 122, 255, 0.06); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 10px; margin-bottom: 14px; }
+    .panel-title { font-family: "Courier New", Courier, monospace; font-size: 1.35rem; font-weight: 700; letter-spacing: 3px; }
+    .panel-health .panel-title { color: var(--health); text-shadow: 0 0 10px var(--health-glow); }
+    .panel-work .panel-title { color: var(--work); text-shadow: 0 0 10px var(--work-glow); }
+    .panel-play .panel-title { color: var(--play); text-shadow: 0 0 10px var(--play-glow); }
+    .panel-love .panel-title { color: var(--love); text-shadow: 0 0 10px var(--love-glow); }
+    .score-badge { font-family: "Courier New", Courier, monospace; font-size: 0.9rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .widget-box { background: rgba(5, 10, 22, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; }
+    .widget-label { font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .slider-row { margin-bottom: 8px; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-meta { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .panel-health input[type="range"]::-webkit-slider-thumb { background: var(--health); box-shadow: 0 0 8px var(--health); }
+    .panel-work input[type="range"]::-webkit-slider-thumb { background: var(--work); box-shadow: 0 0 8px var(--work); }
+    .panel-play input[type="range"]::-webkit-slider-thumb { background: var(--play); box-shadow: 0 0 8px var(--play); }
+    .panel-love input[type="range"]::-webkit-slider-thumb { background: var(--love); box-shadow: 0 0 8px var(--love); }
+    .gauges-row { display: flex; justify-content: space-around; align-items: center; padding: 6px 0; }
+    .gauge {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.85rem;
+      position: relative;
+      background: rgba(0,0,0,0.4);
+    }
+    .gauge span { font-size: 0.6rem; color: var(--text-dim); font-family: sans-serif; margin-top: 2px; }
+    .center-column {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      gap: 16px;
+    }
+    .compass-ring {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid rgba(160, 200, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: radial-gradient(circle, rgba(77,166,255,0.12), transparent 70%);
+      box-shadow: 0 0 25px rgba(77, 166, 255, 0.15);
+    }
+    .compass-needle {
+      width: 4px;
+      height: 95px;
+      background: linear-gradient(to bottom, #ff6b8b 50%, #4da6ff 50%);
+      border-radius: 4px;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .compass-label { position: absolute; font-family: "Courier New", Courier, monospace; font-size: 0.75rem; font-weight: bold; color: var(--text-dim); }
+    .compass-label.n { top: 6px; }
+    .compass-label.s { bottom: 6px; }
+    .compass-label.e { right: 8px; }
+    .compass-label.w { left: 8px; }
+    .core-medallion {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff6eb 0%, #f5c6c6 38%, #90b4e8 72%, #2a3959 100%);
+      box-shadow: 0 0 45px rgba(255, 190, 180, 0.45), 0 0 85px rgba(130, 170, 255, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      color: #151c2e;
+      position: relative;
+      border: 3px solid rgba(255, 255, 255, 0.65);
+    }
+    .core-medallion h1 { font-family: "Courier New", Courier, monospace; font-size: 1.35rem; font-weight: 900; line-height: 1.25; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .alignment-readout { font-family: "Courier New", Courier, monospace; font-size: 0.9rem; font-weight: 700; background: rgba(21, 28, 46, 0.12); padding: 4px 12px; border-radius: 12px; }
+    .life-alignment-bar { width: 100%; text-align: center; }
+    .alignment-icons { display: flex; justify-content: center; gap: 14px; margin-top: 8px; font-size: 1.2rem; }
+    .note-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+    .note-input:focus { outline: none; border-color: var(--work); }
+    .reset-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: var(--text-dim);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover { color: #fff; border-color: #fff; background: rgba(255, 255, 255, 0.1); }
+    @media (max-width: 1100px) {
+      .hud-wrapper { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .center-column { grid-column: 1; grid-row: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud-wrapper">
+    <div class="hud-panel panel-health">
+      <div class="panel-header">
+        <span class="panel-title">HEALTH</span>
+        <span class="score-badge" id="health-total">82%</span>
+      </div>
+      <div class="sub-grid">
+        <div class="widget-box">
+          <div class="widget-label"><span>BIO METRIC</span><span>72 BPM</span></div>
+          <div class="gauges-row">
+            <div class="gauge"><strong id="sleep-val">80%</strong><span>SLEEP</span></div>
+            <div class="gauge"><strong id="energy-val">85%</strong><span>VITALITY</span></div>
+          </div>
+        </div>
+        <div class="widget-box">
+          <div class="widget-label"><span>VITAL GAUGES</span><span>SYNCED</span></div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Sleep Quality</span><span id="lbl-sleep">80%</span></div>
+            <input type="range" min="0" max="100" data-cat="health" data-key="sleep" value="80">
+          </div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Recovery</span><span id="lbl-recovery">78%</span></div>
+            <input type="range" min="0" max="100" data-cat="health" data-key="recovery" value="78">
+          </div>
+        </div>
+      </div>
+      <div class="widget-box" style="margin-top: 14px;">
+        <div class="widget-label"><span>FITNESS ACTIVITY</span><span>ACTIVE</span></div>
+        <div class="slider-row">
+          <div class="slider-meta"><span>Movement</span><span id="lbl-fitness">88%</span></div>
+          <input type="range" min="0" max="100" data-cat="health" data-key="fitness" value="88">
+        </div>
+        <div class="slider-row">
+          <div class="slider-meta"><span>Nutrition</span><span id="lbl-nutrition">82%</span></div>
+          <input type="range" min="0" max="100" data-cat="health" data-key="nutrition" value="82">
+        </div>
+      </div>
+    </div>
+
+    <div class="center-column">
+      <div class="compass-ring">
+        <span class="compass-label n">N</span>
+        <span class="compass-label s">S</span>
+        <span class="compass-label e">E</span>
+        <span class="compass-label w">W</span>
+        <div class="compass-needle" id="compass-needle"></div>
+      </div>
+
+      <div class="core-medallion">
+        <h1>DESIGNING YOUR LIFE</h1>
+        <div class="alignment-readout" id="overall-score">BALANCE: 79%</div>
+        <div class="life-alignment-bar">
+          <div class="alignment-icons">✦ ❖ ☀ ♥</div>
+        </div>
+      </div>
+
+      <button class="reset-btn" id="reset-btn">RESET DEFAULTS</button>
+    </div>
+
+    <div class="hud-panel panel-work">
+      <div class="panel-header">
+        <span class="panel-title">WORK</span>
+        <span class="score-badge" id="work-total">76%</span>
+      </div>
+      <div class="sub-grid">
+        <div class="widget-box">
+          <div class="widget-label"><span>TIMELINE</span><span>Q4 ROADMAP</span></div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Deep Focus</span><span id="lbl-focus">75%</span></div>
+            <input type="range" min="0" max="100" data-cat="work" data-key="focus" value="75">
+          </div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Milestone Flow</span><span id="lbl-milestone">80%</span></div>
+            <input type="range" min="0" max="100" data-cat="work" data-key="milestone" value="80">
+          </div>
+        </div>
+        <div class="widget-box">
+          <div class="widget-label"><span>PROJECT PROGRESS</span><span>ON TRACK</span></div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Skill Mastery</span><span id="lbl-mastery">72%</span></div>
+            <input type="range" min="0" max="100" data-cat="work" data-key="mastery" value="72">
+          </div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Purpose Alignment</span><span id="lbl-purpose">78%</span></div>
+            <input type="range" min="0" max="100" data-cat="work" data-key="purpose" value="78">
+          </div>
+        </div>
+      </div>
+      <div class="widget-box" style="margin-top: 14px;">
+        <div class="widget-label"><span>CURRENT NORTH STAR FOCUS</span><span>AUTO-SAVED</span></div>
+        <input type="text" class="note-input" id="work-note" placeholder="Enter your work focus..." />
+      </div>
+    </div>
+
+    <div class="hud-panel panel-play">
+      <div class="panel-header">
+        <span class="panel-title">PLAY</span>
+        <span class="score-badge" id="play-total">74%</span>
+      </div>
+      <div class="sub-grid">
+        <div class="widget-box">
+          <div class="widget-label"><span>JOY ACTIVITY</span><span>SPARK</span></div>
+          <div class="gauges-row">
+            <div class="gauge"><strong id="joy-val">76%</strong><span>JOY</span></div>
+            <div class="gauge"><strong id="curiosity-val">72%</strong><span>CURIOSITY</span></div>
+          </div>
+        </div>
+        <div class="widget-box">
+          <div class="widget-label"><span>CREATIVE SPARK</span><span>FLOW</span></div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Creative Expression</span><span id="lbl-creative">76%</span></div>
+            <input type="range" min="0" max="100" data-cat="play" data-key="creative" value="76">
+          </div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Exploration & Wonder</span><span id="lbl-explore">72%</span></div>
+            <input type="range" min="0" max="100" data-cat="play" data-key="explore" value="72">
+          </div>
+        </div>
+      </div>
+      <div class="widget-box" style="margin-top: 14px;">
+        <div class="widget-label"><span>HOBBY & ADVENTURE LOG</span><span>AUTO-SAVED</span></div>
+        <input type="text" class="note-input" id="play-note" placeholder="Enter your play or hobby log..." />
+      </div>
+    </div>
+
+    <div class="hud-panel panel-love">
+      <div class="panel-header">
+        <span class="panel-title">LOVE</span>
+        <span class="score-badge" id="love-total">84%</span>
+      </div>
+      <div class="sub-grid">
+        <div class="widget-box">
+          <div class="widget-label"><span>CONNECTION ORBIT</span><span>HARMONY</span></div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Inner Circle</span><span id="lbl-circle">88%</span></div>
+            <input type="range" min="0" max="100" data-cat="love" data-key="circle" value="88">
+          </div>
+          <div class="slider-row">
+            <div class="slider-meta"><span>Community Balance</span><span id="lbl-community">80%</span></div>
+            <input type="range" min="0" max="100" data-cat="love" data-key="community" value="80">
+          </div>
+        </div>
+        <div class="widget-box">
+          <div class="widget-label"><span>EMOTIONAL & COMMUNITY</span><span>RESONANCE</span></div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 8px;">Nurture close relationships and balanced community engagement.</p>
+        </div>
+      </div>
+      <div class="widget-box" style="margin-top: 14px;">
+        <div class="widget-label"><span>CONNECTION INTENTION</span><span>AUTO-SAVED</span></div>
+        <input type="text" class="note-input" id="love-note" placeholder="Enter your connection intention..." />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultState = {
+      health: { sleep: 80, recovery: 78, fitness: 88, nutrition: 82 },
+      work: { focus: 75, milestone: 80, mastery: 72, purpose: 78 },
+      play: { creative: 76, explore: 72 },
+      love: { circle: 88, community: 80 },
+      notes: {
+        work: "Ship meaningful creative work with steady energy",
+        play: "Unplugged weekend nature walk & sketching",
+        love: "Host dinner with close friends"
+      }
+    };
+
+    function cloneDefault() {
+      return JSON.parse(JSON.stringify(defaultState));
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem("dyl_hud_state");
+        return saved ? JSON.parse(saved) : cloneDefault();
+      } catch (e) {
+        return cloneDefault();
+      }
+    }
+
+    function saveState(data) {
+      try {
+        localStorage.setItem("dyl_hud_state", JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    let state = loadState();
+
+    function avg(obj) {
+      const vals = Object.values(obj);
+      return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    }
+
+    function updateUI() {
+      document.querySelectorAll('input[type="range"]').forEach(slider => {
+        const { cat, key } = slider.dataset;
+        const val = state[cat][key];
+        slider.value = val;
+        const lbl = document.getElementById(`lbl-${key}`);
+        if (lbl) lbl.textContent = `${val}%`;
+      });
+
+      document.getElementById("sleep-val").textContent = `${state.health.sleep}%`;
+      document.getElementById("energy-val").textContent = `${Math.round((state.health.recovery + state.health.fitness) / 2)}%`;
+      document.getElementById("joy-val").textContent = `${state.play.creative}%`;
+      document.getElementById("curiosity-val").textContent = `${state.play.explore}%`;
+
+      const hAvg = avg(state.health);
+      const wAvg = avg(state.work);
+      const pAvg = avg(state.play);
+      const lAvg = avg(state.love);
+
+      document.getElementById("health-total").textContent = `${hAvg}%`;
+      document.getElementById("work-total").textContent = `${wAvg}%`;
+      document.getElementById("play-total").textContent = `${pAvg}%`;
+      document.getElementById("love-total").textContent = `${lAvg}%`;
+
+      const total = Math.round((hAvg + wAvg + pAvg + lAvg) / 4);
+      document.getElementById("overall-score").textContent = `BALANCE: ${total}%`;
+
+      const angle = ((wAvg + lAvg) - (hAvg + pAvg)) * 1.2;
+      document.getElementById("compass-needle").style.transform = `rotate(${angle}deg)`;
+
+      document.getElementById("work-note").value = state.notes.work || "";
+      document.getElementById("play-note").value = state.notes.play || "";
+      document.getElementById("love-note").value = state.notes.love || "";
+
+      saveState(state);
+    }
+
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener("input", (e) => {
+        const { cat, key } = e.target.dataset;
+        state[cat][key] = Number(e.target.value);
+        updateUI();
+      });
+    });
+
+    ["work", "play", "love"].forEach(id => {
+      const noteElem = document.getElementById(`${id}-note`);
+      if (noteElem) {
+        noteElem.addEventListener("input", (e) => {
+          state.notes[id] = e.target.value;
+          saveState(state);
+        });
+      }
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      state = cloneDefault();
+      updateUI();
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
