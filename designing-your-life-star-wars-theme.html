@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d16">
+  <title>Designing Your Life — Galactic Command HUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep:#080b12; --panel-bg:rgba(15,20,29,.88);
+      --health:#69d6c5; --work:#ffd34e; --play:#e34b4b; --love:#8fb8e8;
+      --text-main:#f2f0e8; --text-dim:#a9b3c2;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; padding:28px;
+      color:var(--text-main); font-family:'Rajdhani',sans-serif;
+      background-color:var(--bg-deep);
+      background-image:
+        radial-gradient(circle at 18% 22%,rgba(44,230,168,.16),transparent 32%),
+        radial-gradient(circle at 82% 20%,rgba(77,166,255,.16),transparent 32%),
+        radial-gradient(circle at 20% 80%,rgba(255,107,139,.15),transparent 34%),
+        radial-gradient(circle at 80% 80%,rgba(185,122,255,.15),transparent 34%);
+      overflow-x:hidden;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+      background-image:radial-gradient(1px 1px at 10% 15%,#fff,transparent),
+        radial-gradient(1.5px 1.5px at 25% 45%,rgba(255,255,255,.8),transparent),
+        radial-gradient(1px 1px at 40% 10%,#fff,transparent),
+        radial-gradient(2px 2px at 65% 30%,rgba(180,220,255,.9),transparent),
+        radial-gradient(1px 1px at 85% 60%,#fff,transparent);
+      background-size:350px 350px;
+    }
+    .hud-wrapper {
+      position:relative; z-index:1; width:min(100%,1440px); margin:auto;
+      display:grid; grid-template-columns:minmax(0,1fr) 270px minmax(0,1fr);
+      grid-template-areas:"health center work" "play center love";
+      gap:20px; align-items:stretch;
+    }
+    .hud-panel {
+      min-width:0; padding:20px; border:1px solid rgba(255,255,255,.15);
+      border-radius:14px; background:var(--panel-bg); backdrop-filter:blur(10px);
+      box-shadow:inset 0 0 24px rgba(0,0,0,.35); transition:transform .2s ease;
+    }
+    .hud-panel:hover { transform:translateY(-2px); }
+    .panel-health { grid-area:health; border-color:rgba(44,230,168,.45); }
+    .panel-work { grid-area:work; border-color:rgba(77,166,255,.45); }
+    .panel-play { grid-area:play; border-color:rgba(255,107,139,.45); }
+    .panel-love { grid-area:love; border-color:rgba(185,122,255,.45); }
+    .panel-header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,.13); }
+    .panel-title { margin:0; font:700 1.25rem 'Orbitron',sans-serif; letter-spacing:2px; }
+    .panel-health .panel-title { color:var(--health); }
+    .panel-work .panel-title { color:var(--work); }
+    .panel-play .panel-title { color:var(--play); }
+    .panel-love .panel-title { color:var(--love); }
+    .score-badge { white-space:nowrap; font:700 .8rem 'Orbitron',sans-serif; padding:5px 9px; border-radius:20px; background:rgba(255,255,255,.08); }
+    .sub-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .widget-box { min-width:0; padding:12px; border:1px solid rgba(255,255,255,.09); border-radius:9px; background:rgba(5,10,22,.5); }
+    .widget-label { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; color:var(--text-dim); font-size:.76rem; letter-spacing:1.2px; text-transform:uppercase; }
+    .slider-row { margin:0 0 12px; }
+    .slider-row:last-child { margin-bottom:0; }
+    .slider-meta { display:flex; justify-content:space-between; gap:8px; margin-bottom:4px; font-size:.9rem; }
+    .slider-meta output { font-variant-numeric:tabular-nums; }
+    input[type=range] { display:block; width:100%; height:6px; margin:8px 0 3px; border-radius:5px; appearance:none; background:rgba(255,255,255,.15); cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb { width:15px; height:15px; border:0; border-radius:50%; appearance:none; background:currentColor; box-shadow:0 0 9px currentColor; }
+    input[type=range]::-moz-range-thumb { width:15px; height:15px; border:0; border-radius:50%; background:currentColor; box-shadow:0 0 9px currentColor; }
+    .panel-health input { color:var(--health); accent-color:var(--health); }
+    .panel-work input { color:var(--work); accent-color:var(--work); }
+    .panel-play input { color:var(--play); accent-color:var(--play); }
+    .panel-love input { color:var(--love); accent-color:var(--love); }
+    .center-column { grid-area:center; display:flex; flex-direction:column; align-items:center; justify-content:space-around; gap:20px; padding:12px 0; }
+    .compass-ring { position:relative; width:138px; height:138px; flex:none; border:2px solid rgba(160,200,255,.35); border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle,rgba(77,166,255,.12),transparent 70%); box-shadow:0 0 25px rgba(77,166,255,.15); }
+    .compass-needle { width:4px; height:88px; border-radius:4px; background:linear-gradient(to bottom,var(--play) 50%,var(--work) 50%); transition:transform .5s ease; }
+    .compass-label { position:absolute; color:var(--text-dim); font: .62rem 'Orbitron',sans-serif; }
+    .compass-label.n { top:7px; } .compass-label.s { bottom:7px; }
+    .compass-label.e { right:8px; } .compass-label.w { left:8px; }
+    .core-medallion {
+      width:min(250px,75vw); aspect-ratio:1; border:3px solid rgba(255,255,255,.65);
+      border-radius:50%; padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; color:#151c2e;
+      background:radial-gradient(circle at 35% 35%,#fff6eb 0%,#f5c6c6 38%,#90b4e8 72%,#2a3959 100%);
+      box-shadow:0 0 45px rgba(255,190,180,.35),0 0 75px rgba(130,170,255,.2),inset 0 0 25px rgba(255,255,255,.7);
+    }
+    .core-medallion h1 { margin:0 0 10px; font:900 clamp(1rem,2vw,1.35rem)/1.25 'Orbitron',sans-serif; letter-spacing:1px; }
+    .alignment-readout { font:700 .8rem 'Orbitron',sans-serif; padding:6px 10px; border-radius:12px; background:rgba(21,28,46,.12); }
+    .life-alignment-bar { width:100%; text-align:center; }
+    .alignment-icons { display:flex; justify-content:center; gap:14px; margin-top:8px; font-size:1.2rem; }
+    .note-input { width:100%; min-height:38px; margin-top:6px; padding:8px; border:1px solid rgba(255,255,255,.16); border-radius:6px; color:var(--text-main); background:rgba(255,255,255,.06); font: .9rem 'Rajdhani',sans-serif; }
+    .note-input:focus { outline:2px solid var(--work); outline-offset:1px; }
+    .reset-btn { padding:8px 14px; border:1px solid rgba(255,255,255,.3); border-radius:20px; color:var(--text-dim); background:transparent; font: .68rem 'Orbitron',sans-serif; letter-spacing:1px; cursor:pointer; }
+    .reset-btn:hover { color:#fff; border-color:#fff; background:rgba(255,255,255,.1); }
+    .status-line { margin-top:12px; color:var(--text-dim); font-size:.78rem; text-align:center; }
+    @media (max-width:1050px) {
+      body { padding:18px; }
+      .hud-wrapper { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-areas:"center center" "health work" "play love"; }
+      .center-column { min-height:330px; flex-direction:row; justify-content:center; flex-wrap:wrap; }
+    }
+    @media (max-width:650px) {
+      body { padding:12px; }
+      .hud-wrapper { grid-template-columns:minmax(0,1fr); grid-template-areas:"center" "health" "work" "play" "love"; gap:14px; }
+      .center-column { flex-direction:column; min-height:0; padding:12px 0 18px; }
+      .hud-panel { padding:16px; }
+    }
+
+    /* GALACTIC COMMAND THEME */
+    body {
+      background-image:
+        radial-gradient(ellipse at 50% 115%,rgba(43,83,126,.22),transparent 48%),
+        radial-gradient(circle at 12% 18%,rgba(255,211,78,.08),transparent 28%),
+        radial-gradient(circle at 88% 24%,rgba(143,184,232,.09),transparent 30%),
+        linear-gradient(180deg,#080b12 0%,#101725 52%,#070a10 100%);
+    }
+    body::before {
+      opacity:.7;
+      background-image:
+        radial-gradient(1px 1px at 7% 17%,#fff,transparent),
+        radial-gradient(1.5px 1.5px at 19% 72%,#dce8ff,transparent),
+        radial-gradient(1px 1px at 33% 29%,#fff,transparent),
+        radial-gradient(1px 1px at 51% 11%,#fff,transparent),
+        radial-gradient(1.5px 1.5px at 68% 63%,#dce8ff,transparent),
+        radial-gradient(1px 1px at 83% 38%,#fff,transparent),
+        radial-gradient(1px 1px at 94% 82%,#fff,transparent);
+      background-size:420px 420px;
+    }
+    .hud-panel {
+      border-radius:5px;
+      background:linear-gradient(145deg,rgba(24,33,47,.94),rgba(8,13,22,.92));
+      box-shadow:inset 0 0 24px rgba(0,0,0,.55),0 8px 28px rgba(0,0,0,.28);
+      clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px));
+    }
+    .panel-header { border-bottom-color:rgba(255,211,78,.25); }
+    .panel-title { text-shadow:0 0 12px currentColor; letter-spacing:3px; }
+    .panel-health { border-color:rgba(105,214,197,.55); }
+    .panel-work { border-color:rgba(255,211,78,.6); }
+    .panel-play { border-color:rgba(227,75,75,.55); }
+    .panel-love { border-color:rgba(143,184,232,.55); }
+    .widget-box {
+      border-radius:4px;
+      background:rgba(3,7,13,.72);
+      border-color:rgba(169,190,215,.16);
+    }
+    .widget-label { letter-spacing:1.7px; color:#b8c2d0; }
+    .score-badge {
+      border-radius:3px;
+      border-color:rgba(255,211,78,.32);
+      color:#ffe28a;
+      background:rgba(255,211,78,.08);
+    }
+    .compass-ring {
+      border-color:rgba(255,211,78,.55);
+      background:radial-gradient(circle,rgba(255,211,78,.12),rgba(12,22,36,.3) 65%,transparent 72%);
+      box-shadow:0 0 28px rgba(255,211,78,.12),inset 0 0 18px rgba(143,184,232,.1);
+    }
+    .compass-needle { background:linear-gradient(to bottom,#e34b4b 50%,#ffd34e 50%); }
+    .core-medallion {
+      border:4px solid #d7dce2;
+      color:#101720;
+      background:radial-gradient(circle at 35% 30%,#fffbe7 0%,#d9d5c5 42%,#77899b 75%,#26384b 100%);
+      box-shadow:0 0 0 7px rgba(169,190,215,.09),0 0 48px rgba(255,211,78,.18),inset 0 0 28px rgba(255,255,255,.65);
+    }
+    .core-medallion h1 { letter-spacing:2px; }
+    .alignment-readout {
+      border:1px solid rgba(16,23,32,.2);
+      background:rgba(16,23,32,.09);
+    }
+    .note-input {
+      border-radius:3px;
+      background:rgba(143,184,232,.06);
+      border-color:rgba(143,184,232,.22);
+    }
+    .reset-btn {
+      border-radius:3px;
+      border-color:rgba(255,211,78,.4);
+      color:#e8d28c;
+    }
+    .reset-btn:hover { color:#fff4c9; border-color:#ffd34e; background:rgba(255,211,78,.1); }
+    .status-line { color:#a9b8ca; }
+    .panel-health input { color:var(--health); accent-color:var(--health); }
+    .panel-work input { color:var(--work); accent-color:var(--work); }
+    .panel-play input { color:var(--play); accent-color:var(--play); }
+    .panel-love input { color:var(--love); accent-color:var(--love); }
+
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <main class="hud-wrapper" aria-label="Life balance dashboard">
+    <section class="hud-panel panel-health" id="health-panel">
+      <header class="panel-header"><h2 class="panel-title">LIFE SUPPORT</h2><span class="score-badge" id="health-total">82%</span></header>
+      <div class="sub-grid">
+        <div class="widget-box"><div class="widget-label"><span>VITAL SIGNS</span><span id="energy-val">83%</span></div><div class="gauges-row"><div class="gauge" id="sleep-val">80%<span>SLEEP</span></div><div class="gauge" id="vitality-val">85%<span>VITALITY</span></div></div></div>
+        <div class="widget-box"><div class="widget-label"><span>SYSTEM STATUS</span><span>SYNCED</span></div><div id="health-sliders"></div></div>
+        <div class="widget-box"><div class="widget-label"><span>CREW READINESS</span><span>ACTIVE</span></div><div class="slider-row"><div class="slider-meta"><label for="health-fitness">Movement</label><output id="lbl-fitness">88%</output></div><input id="health-fitness" type="range" min="0" max="100" value="88" data-cat="health" data-key="fitness"></div><div class="slider-row"><div class="slider-meta"><label for="health-nutrition">Nutrition</label><output id="lbl-nutrition">82%</output></div><input id="health-nutrition" type="range" min="0" max="100" value="82" data-cat="health" data-key="nutrition"></div></div>
+        <div class="widget-box"><div class="widget-label"><span>Recovery</span><span>TRACKING</span></div><p style="margin:0;color:var(--text-dim)">Sleep, recovery, movement and nutrition at a glance.</p></div>
+      </div>
+    </section>
+
+    <section class="hud-panel panel-work" id="work-panel">
+      <header class="panel-header"><h2 class="panel-title">MISSION CONTROL</h2><span class="score-badge" id="work-total">76%</span></header>
+      <div class="sub-grid">
+        <div class="widget-box"><div class="widget-label"><span>MISSION LOG</span><span>Q4 ROADMAP</span></div><div id="work-sliders"></div></div>
+        <div class="widget-box"><div class="widget-label"><span>OPERATION STATUS</span><span>ON TRACK</span></div><div class="slider-row"><div class="slider-meta"><label for="work-mastery">Skill Mastery</label><output id="lbl-mastery">72%</output></div><input id="work-mastery" type="range" min="0" max="100" value="72" data-cat="work" data-key="mastery"></div><div class="slider-row"><div class="slider-meta"><label for="work-purpose">Purpose Alignment</label><output id="lbl-purpose">78%</output></div><input id="work-purpose" type="range" min="0" max="100" value="78" data-cat="work" data-key="purpose"></div></div>
+      </div>
+      <div class="widget-box" style="margin-top:12px"><div class="widget-label"><label for="work-note">PRIMARY DIRECTIVE</label><span> AUTO-SAVED</span></div><textarea class="note-input" id="work-note" rows="2">Ship meaningful creative work with steady energy</textarea></div>
+    </section>
+
+    <section class="hud-panel panel-play" id="play-panel">
+      <header class="panel-header"><h2 class="panel-title">RECREATION</h2><span class="score-badge" id="play-total">74%</span></header>
+      <div class="sub-grid">
+        <div class="widget-box"><div class="widget-label"><span>MORALE</span><span>SPARK</span></div><div class="gauges-row"><div class="gauge" id="joy-val">76%<span>JOY</span></div><div class="gauge" id="curiosity-val">72%<span>CURIOSITY</span></div></div></div>
+        <div class="widget-box"><div class="widget-label"><span>CREATIVE SYSTEMS</span><span>FLOW</span></div><div id="play-sliders"></div></div>
+      </div>
+      <div class="widget-box" style="margin-top:12px"><div class="widget-label"><label for="play-note">SHORE LEAVE LOG</label><span>AUTO-SAVED</span></div><textarea class="note-input" id="play-note" rows="2">Unplugged weekend nature walk &amp; sketching</textarea></div>
+    </section>
+
+    <section class="hud-panel panel-love" id="love-panel">
+      <header class="panel-header"><h2 class="panel-title">ALLIANCES</h2><span class="score-badge" id="love-total">84%</span></header>
+      <div class="sub-grid">
+        <div class="widget-box"><div class="widget-label"><span>ALLIANCE NETWORK</span><span>HARMONY</span></div><div id="love-sliders"></div></div>
+        <div class="widget-box"><div class="widget-label"><span>DIPLOMATIC STATUS</span><span>RESONANCE</span></div><p style="margin:0;color:var(--text-dim)">Nurture close relationships and balanced community engagement.</p></div>
+      </div>
+      <div class="widget-box" style="margin-top:12px"><div class="widget-label"><label for="love-note">ALLIANCE DIRECTIVE</label><span>AUTO-SAVED</span></div><textarea class="note-input" id="love-note" rows="2">Host dinner with close friends</textarea></div>
+    </section>
+
+    <aside class="center-column" aria-label="Overall life balance">
+      <div class="compass-ring" aria-label="Balance compass"><span class="compass-label n">N</span><span class="compass-label s">S</span><span class="compass-label e">E</span><span class="compass-label w">W</span><div class="compass-needle" id="compass-needle"></div></div>
+      <div class="core-medallion"><h1>GALACTIC<br>COMMAND</h1><div class="alignment-readout" id="overall-score" aria-live="polite">BALANCE: 79%</div></div>
+      <div class="life-alignment-bar"><div class="alignment-icons" aria-hidden="true">✦ ❖ ☀ ♥</div><button class="reset-btn" id="reset-btn" type="button">RESET SYSTEMS</button><div class="status-line" id="save-status" aria-live="polite">SYSTEM DATA SAVED LOCALLY.</div></div>
+    </aside>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+      const defaultState = {
+        health:{sleep:80,recovery:78,fitness:88,nutrition:82},
+        work:{focus:75,milestone:80,mastery:72,purpose:78},
+        play:{creative:76,explore:72},
+        love:{circle:88,community:80},
+        notes:{
+          work:"Ship meaningful creative work with steady energy",
+          play:"Unplugged weekend nature walk & sketching",
+          love:"Host dinner with close friends"
+        }
+      };
+      const storageKey = "dyl_hud_state";
+      const cloneDefaults = () => JSON.parse(JSON.stringify(defaultState));
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey));
+          if (!saved || typeof saved !== "object") return cloneDefaults();
+          const result = cloneDefaults();
+          for (const category of ["health","work","play","love"]) {
+            for (const key of Object.keys(result[category])) {
+              const value = Number(saved[category]?.[key]);
+              if (Number.isFinite(value)) result[category][key] = Math.max(0,Math.min(100,value));
+            }
+          }
+          for (const key of ["work","play","love"]) {
+            if (typeof saved.notes?.[key] === "string") result.notes[key] = saved.notes[key];
+          }
+          return result;
+        } catch (error) {
+          console.warn("Could not load saved dashboard data:",error);
+          return cloneDefaults();
+        }
+      }
+      let state = loadState();
+      const sliderConfig = {
+        health:[["sleep","Sleep Quality"],["recovery","Recovery"]],
+        work:[["focus","Deep Focus"],["milestone","Milestone Flow"]],
+        play:[["creative","Creative Expression"],["explore","Exploration & Wonder"]],
+        love:[["circle","Inner Circle"],["community","Community Balance"]]
+      };
+      function addSliders(category) {
+        const host = document.getElementById(category + "-sliders");
+        if (!host) return;
+        host.innerHTML = sliderConfig[category].map(([key,label]) => `
+          <div class="slider-row">
+            <div class="slider-meta"><label for="${category}-${key}">${label}</label><output id="lbl-${key}" for="${category}-${key}">${state[category][key]}%</output></div>
+            <input id="${category}-${key}" type="range" min="0" max="100" step="1" value="${state[category][key]}" data-cat="${category}" data-key="${key}" aria-label="${label}">
+          </div>`).join("");
+      }
+      ["health","work","play","love"].forEach(addSliders);
+
+      function average(values) {
+        const numbers = Object.values(values);
+        return Math.round(numbers.reduce((sum,value) => sum + value,0) / numbers.length);
+      }
+      function saveState() {
+        try {
+          localStorage.setItem(storageKey,JSON.stringify(state));
+          const status = document.getElementById("save-status");
+          if (status) status.textContent = "SYSTEM DATA SAVED LOCALLY.";
+        } catch (error) {
+          console.warn("Could not save dashboard data:",error);
+          const status = document.getElementById("save-status");
+          if (status) status.textContent = "LOCAL DATA STORAGE UNAVAILABLE.";
+        }
+      }
+      function updateUI() {
+        document.querySelectorAll('input[type="range"][data-cat]').forEach(slider => {
+          const {cat,key} = slider.dataset;
+          const value = state[cat][key];
+          slider.value = value;
+          const output = document.getElementById("lbl-" + key);
+          if (output) output.textContent = value + "%";
+        });
+        document.getElementById("sleep-val").innerHTML = state.health.sleep + "%<span>SLEEP</span>";
+        document.getElementById("vitality-val").innerHTML = state.health.nutrition + "%<span>VITALITY</span>";
+        document.getElementById("energy-val").textContent = Math.round((state.health.recovery + state.health.fitness)/2) + "%";
+        document.getElementById("joy-val").innerHTML = state.play.creative + "%<span>JOY</span>";
+        document.getElementById("curiosity-val").innerHTML = state.play.explore + "%<span>CURIOSITY</span>";
+
+        const scores = {
+          health:average(state.health), work:average(state.work),
+          play:average(state.play), love:average(state.love)
+        };
+        Object.entries(scores).forEach(([category,score]) => {
+          document.getElementById(category + "-total").textContent = score + "%";
+        });
+        const overall = Math.round(Object.values(scores).reduce((sum,value) => sum + value,0)/4);
+        document.getElementById("overall-score").textContent = "BALANCE: " + overall + "%";
+        const angle = ((scores.work + scores.love) - (scores.health + scores.play)) * 1.2;
+        document.getElementById("compass-needle").style.transform = `rotate(${angle}deg)`;
+
+        ["work","play","love"].forEach(category => {
+          const field = document.getElementById(category + "-note");
+          if (field && field.value !== state.notes[category]) field.value = state.notes[category] || "";
+        });
+      }
+      document.addEventListener("input",event => {
+        const target = event.target;
+        if (target.matches('input[type="range"][data-cat]')) {
+          const {cat,key} = target.dataset;
+          state[cat][key] = Number(target.value);
+          updateUI();
+          saveState();
+        } else if (target.matches("textarea.note-input")) {
+          const category = target.id.replace("-note","");
+          if (Object.hasOwn(state.notes,category)) {
+            state.notes[category] = target.value;
+            saveState();
+          }
+        }
+      });
+      document.getElementById("reset-btn").addEventListener("click",() => {
+        if (!window.confirm("Reset all scores and notes to their defaults?")) return;
+        state = cloneDefaults();
+        updateUI();
+        saveState();
+      });
+      updateUI();
+    })();
+  </script>
+</body>
+</html>
