@@ -22,24 +22,18 @@
       --text-main: #e6f0ff;
       --text-dim: #8a9ec2;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg-deep);
       color: var(--text-main);
       font-family: 'Rajdhani', sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
-      background-image:
-        radial-gradient(circle at 18% 22%, rgba(44, 230, 168, 0.16) 0%, transparent 32%),
-        radial-gradient(circle at 82% 20%, rgba(77, 166, 255, 0.16) 0%, transparent 32%),
-        radial-gradient(circle at 20% 80%, rgba(255, 107, 139, 0.18) 0%, transparent 34%),
-        radial-gradient(circle at 80% 80%, rgba(185, 122, 255, 0.18) 0%, transparent 34%),
+      background-image: 
+        radial-gradient(circle at 18% 22%, rgba(44, 230, 168, 0.16) 0%, transparent 32%), 
+        radial-gradient(circle at 82% 20%, rgba(77, 166, 255, 0.16) 0%, transparent 32%), 
+        radial-gradient(circle at 20% 80%, rgba(255, 107, 139, 0.18) 0%, transparent 34%), 
+        radial-gradient(circle at 80% 80%, rgba(185, 122, 255, 0.18) 0%, transparent 34%), 
         radial-gradient(circle at 50% 50%, rgba(255, 210, 180, 0.08) 0%, transparent 45%);
       display: flex;
       flex-direction: column;
@@ -47,26 +41,23 @@
       justify-content: center;
       padding: 20px;
     }
-
-    /* Subtle Starfield */
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       background-image: 
-        radial-gradient(1px 1px at 10% 15%, #fff, transparent),
-        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,255,255,0.8), transparent),
-        radial-gradient(1px 1px at 40% 10%, #fff, transparent),
-        radial-gradient(2px 2px at 65% 30%, rgba(180,220,255,0.9), transparent),
-        radial-gradient(1px 1px at 85% 60%, #fff, transparent),
-        radial-gradient(1.5px 1.5px at 50% 85%, #fff, transparent),
+        radial-gradient(1px 1px at 10% 15%, #fff, transparent), 
+        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,255,255,0.8), transparent), 
+        radial-gradient(1px 1px at 40% 10%, #fff, transparent), 
+        radial-gradient(2px 2px at 65% 30%, rgba(180,220,255,0.9), transparent), 
+        radial-gradient(1px 1px at 85% 60%, #fff, transparent), 
+        radial-gradient(1.5px 1.5px at 50% 85%, #fff, transparent), 
         radial-gradient(1px 1px at 15% 75%, rgba(255,200,220,0.8), transparent);
       background-size: 350px 350px;
       opacity: 0.55;
       pointer-events: none;
       z-index: 0;
     }
-
     .hud-wrapper {
       position: relative;
       z-index: 1;
@@ -78,8 +69,6 @@
       gap: 22px;
       align-items: stretch;
     }
-
-    /* HUD Frame Styling */
     .hud-panel {
       background: var(--panel-bg);
       backdrop-filter: blur(10px);
@@ -90,104 +79,24 @@
       box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-
-    .hud-panel:hover {
-      transform: translateY(-2px);
-    }
-
+    .hud-panel:hover { transform: translateY(-2px); }
     .panel-health { border-color: rgba(44, 230, 168, 0.45); box-shadow: 0 0 25px rgba(44, 230, 168, 0.1), inset 0 0 20px rgba(44, 230, 168, 0.06); }
-    .panel-work   { border-color: rgba(77, 166, 255, 0.45); box-shadow: 0 0 25px rgba(77, 166, 255, 0.1), inset 0 0 20px rgba(77, 166, 255, 0.06); }
-    .panel-play   { border-color: rgba(255, 107, 139, 0.45); box-shadow: 0 0 25px rgba(255, 107, 139, 0.1), inset 0 0 20px rgba(255, 107, 139, 0.06); }
-    .panel-love   { border-color: rgba(185, 122, 255, 0.45); box-shadow: 0 0 25px rgba(185, 122, 255, 0.1), inset 0 0 20px rgba(185, 122, 255, 0.06); }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
-    }
-
-    .panel-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: 3px;
-    }
-
+    .panel-work { border-color: rgba(77, 166, 255, 0.45); box-shadow: 0 0 25px rgba(77, 166, 255, 0.1), inset 0 0 20px rgba(77, 166, 255, 0.06); }
+    .panel-play { border-color: rgba(255, 107, 139, 0.45); box-shadow: 0 0 25px rgba(255, 107, 139, 0.1), inset 0 0 20px rgba(255, 107, 139, 0.06); }
+    .panel-love { border-color: rgba(185, 122, 255, 0.45); box-shadow: 0 0 25px rgba(185, 122, 255, 0.1), inset 0 0 20px rgba(185, 122, 255, 0.06); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 10px; margin-bottom: 14px; }
+    .panel-title { font-family: 'Orbitron', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: 3px; }
     .panel-health .panel-title { color: var(--health); text-shadow: 0 0 10px var(--health-glow); }
-    .panel-work .panel-title   { color: var(--work); text-shadow: 0 0 10px var(--work-glow); }
-    .panel-play .panel-title   { color: var(--play); text-shadow: 0 0 10px var(--play-glow); }
-    .panel-love .panel-title   { color: var(--love); text-shadow: 0 0 10px var(--love-glow); }
-
-    .score-badge {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.9rem;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .sub-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .widget-box {
-      background: rgba(5, 10, 22, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-
-    .widget-label {
-      font-size: 0.78rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* Animated SVG Waveforms */
-    svg.wave {
-      width: 100%;
-      height: 44px;
-      overflow: visible;
-    }
-
-    .wave-line {
-      fill: none;
-      stroke-width: 2;
-      stroke-dasharray: 400;
-      stroke-dashoffset: 400;
-      animation: drawWave 4s linear infinite;
-    }
-
-    @keyframes drawWave {
-      to { stroke-dashoffset: 0; }
-    }
-
-    /* Sliders & Progress Bars */
-    .slider-row {
-      margin-bottom: 8px;
-    }
-
-    .slider-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .slider-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      margin-bottom: 3px;
-    }
-
+    .panel-work .panel-title { color: var(--work); text-shadow: 0 0 10px var(--work-glow); }
+    .panel-play .panel-title { color: var(--play); text-shadow: 0 0 10px var(--play-glow); }
+    .panel-love .panel-title { color: var(--love); text-shadow: 0 0 10px var(--love-glow); }
+    .score-badge { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; padding: 3px 10px; border-radius: 20px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .widget-box { background: rgba(5, 10, 22, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; }
+    .widget-label { font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .slider-row { margin-bottom: 8px; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-meta { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 3px; }
     input[type="range"] {
       -webkit-appearance: none;
       width: 100%;
@@ -197,12 +106,6 @@
       outline: none;
       cursor: pointer;
     }
-
-    .panel-health input[type="range"]::-webkit-slider-thumb { background: var(--health); box-shadow: 0 0 8px var(--health); }
-    .panel-work input[type="range"]::-webkit-slider-thumb   { background: var(--work); box-shadow: 0 0 8px var(--work); }
-    .panel-play input[type="range"]::-webkit-slider-thumb   { background: var(--play); box-shadow: 0 0 8px var(--play); }
-    .panel-love input[type="range"]::-webkit-slider-thumb   { background: var(--love); box-shadow: 0 0 8px var(--love); }
-
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 14px;
@@ -210,15 +113,11 @@
       border-radius: 50%;
       cursor: pointer;
     }
-
-    /* Circular Gauges */
-    .gauges-row {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 6px 0;
-    }
-
+    .panel-health input[type="range"]::-webkit-slider-thumb { background: var(--health); box-shadow: 0 0 8px var(--health); }
+    .panel-work input[type="range"]::-webkit-slider-thumb { background: var(--work); box-shadow: 0 0 8px var(--work); }
+    .panel-play input[type="range"]::-webkit-slider-thumb { background: var(--play); box-shadow: 0 0 8px var(--play); }
+    .panel-love input[type="range"]::-webkit-slider-thumb { background: var(--love); box-shadow: 0 0 8px var(--love); }
+    .gauges-row { display: flex; justify-content: space-around; align-items: center; padding: 6px 0; }
     .gauge {
       width: 64px;
       height: 64px;
@@ -232,14 +131,7 @@
       position: relative;
       background: rgba(0,0,0,0.4);
     }
-
-    .gauge span {
-      font-size: 0.6rem;
-      color: var(--text-dim);
-      font-family: 'Rajdhani', sans-serif;
-    }
-
-    /* Center Column: Compass + Designing Your Life Core */
+    .gauge span { font-size: 0.6rem; color: var(--text-dim); font-family: 'Rajdhani', sans-serif; }
     .center-column {
       grid-column: 2;
       grid-row: 1 / span 2;
@@ -250,7 +142,6 @@
       padding: 10px 0;
       gap: 16px;
     }
-
     .compass-ring {
       width: 140px;
       height: 140px;
@@ -263,7 +154,6 @@
       background: radial-gradient(circle, rgba(77,166,255,0.12), transparent 70%);
       box-shadow: 0 0 25px rgba(77, 166, 255, 0.15);
     }
-
     .compass-needle {
       width: 4px;
       height: 95px;
@@ -271,27 +161,17 @@
       border-radius: 4px;
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
-
-    .compass-label {
-      position: absolute;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.65rem;
-      color: var(--text-dim);
-    }
+    .compass-label { position: absolute; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; color: var(--text-dim); }
     .compass-label.n { top: 6px; }
     .compass-label.s { bottom: 6px; }
     .compass-label.e { right: 8px; }
     .compass-label.w { left: 8px; }
-
     .core-medallion {
       width: 250px;
       height: 250px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 35%, #fff6eb 0%, #f5c6c6 38%, #90b4e8 72%, #2a3959 100%);
-      box-shadow:
-        0 0 45px rgba(255, 190, 180, 0.45),
-        0 0 85px rgba(130, 170, 255, 0.25),
-        inset 0 0 25px rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 45px rgba(255, 190, 180, 0.45), 0 0 85px rgba(130, 170, 255, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.8);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -302,106 +182,41 @@
       position: relative;
       border: 3px solid rgba(255, 255, 255, 0.65);
     }
-
-    .core-medallion h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 900;
-      line-height: 1.25;
-      letter-spacing: 1.5px;
-      margin-bottom: 8px;
-    }
-
-    .alignment-readout {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      background: rgba(21, 28, 46, 0.12);
-      padding: 4px 12px;
-      border-radius: 12px;
-    }
-
-    .life-alignment-bar {
+    .core-medallion h1 { font-family: 'Orbitron', sans-serif; font-size: 1.35rem; font-weight: 900; line-height: 1.25; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .alignment-readout { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700; background: rgba(21, 28, 46, 0.12); padding: 4px 12px; border-radius: 12px; }
+    .life-alignment-bar { width: 100%; text-align: center; }
+    .alignment-icons { display: flex; justify-content: center; gap: 14px; margin-top: 8px; font-size: 1.2rem; }
+    .note-input {
       width: 100%;
-      text-align: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      margin-top: 6px;
     }
-
-    .alignment-icons {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      margin-top: 8px;
-      font-size: 1.2rem;
+    .note-input:focus { outline: none; border-color: var(--work); }
+    .reset-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: var(--text-dim);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
     }
-
-    /* Interactive Orbit & Logs */
+    .reset-btn:hover { color: #fff; border-color: #fff; background: rgba(255, 255, 255, 0.1); }
+    @media (max-width: 1100px) {
+      .hud-wrapper { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .center-column { grid-column: 1; grid-row: 1; }
+    }
+  </style>
 Use code with caution.
-.orbit-box {
-position: relative;
-height: 110px;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-.orbit-ring {
-width: 90px;
-height: 90px;
-border: 1px dashed rgba(185, 122, 255, 0.5);
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-animation: spinSlow 18s linear infinite;
-}
-@keyframes spinSlow {
-to { transform: rotate(360deg); }
-}
-.note-input {
-width: 100%;
-background: rgba(255, 255, 255, 0.06);
-border: 1px solid rgba(255, 255, 255, 0.16);
-border-radius: 6px;
-padding: 6px 8px;
-color: var(--text-main);
-font-family: 'Rajdhani', sans-serif;
-font-size: 0.9rem;
-margin-top: 6px;
-}
-.note-input:focus {
-outline: none;
-border-color: var(--work);
-}
-.reset-btn {
-background: transparent;
-border: 1px solid rgba(255, 255, 255, 0.25);
-color: var(--text-dim);
-font-family: 'Orbitron', sans-serif;
-font-size: 0.7rem;
-padding: 6px 14px;
-border-radius: 20px;
-cursor: pointer;
-letter-spacing: 1px;
-transition: all 0.2s;
-}
-.reset-btn:hover {
-color: #fff;
-border-color: #fff;
-background: rgba(255, 255, 255, 0.1);
-}
-/* Responsive Layout for Tablets & Phones */
-@media (max-width: 1100px) {
-.hud-wrapper {
-grid-template-columns: 1fr;
-grid-template-rows: auto;
-}
-.center-column {
-grid-column: 1;
-grid-row: 1;
-}
-}
-
-
-
 HEALTH
 82%
 
@@ -409,30 +224,19 @@ HEALTH
 
 BIO METRIC72 BPM
 
-
+80%SLEEP
+85%VITALITY
 
 
 
 VITAL GAUGESSYNCED
-
-
-80%
-SLEEP
-
-
-85%
-VITALITY
-
-
-
-
-SLEEP CYCLE7H 45M
 
 Sleep Quality80%
 
 
 
 Recovery78%
+
 
 
 
@@ -452,17 +256,11 @@ S
 E
 W
 
-LIFE ALIGNMENT
-
-
-✦
-❖
-☀
-♥
-
-DESIGNING
-YOUR LIFE
+DESIGNING YOUR LIFE
 BALANCE: 79%
+
+✦ ❖ ☀ ♥
+
 RESET DEFAULTS
 WORK
 76%
@@ -491,6 +289,7 @@ Purpose Alignment78%
 
 
 
+
 CURRENT NORTH STAR FOCUSAUTO-SAVED
 
 
@@ -501,14 +300,8 @@ PLAY
 
 JOY ACTIVITYSPARK
 
-
-76%
-JOY
-
-
-72%
-CURIOSITY
-
+76%JOY
+72%CURIOSITY
 
 
 
@@ -523,6 +316,7 @@ Exploration & Wonder72%
 
 
 
+
 HOBBY & ADVENTURE LOGAUTO-SAVED
 
 
@@ -533,20 +327,17 @@ LOVE
 
 CONNECTION ORBITHARMONY
 
-
-♥
-
-
-
-
-EMOTIONAL & COMMUNITYRESONANCE
-
 Inner Circle88%
 
 
 
 Community Balance80%
 
+
+
+
+EMOTIONAL & COMMUNITYRESONANCE
+Nurture close relationships and balanced community engagement.
 
 
 
@@ -571,7 +362,6 @@ const vals = Object.values(obj);
 return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
 }
 function updateUI() {
-// Update sliders & labels
 document.querySelectorAll('input[type="range"]').forEach(slider => {
 const { cat, key } = slider.dataset;
 const val = state[cat][key];
@@ -579,12 +369,10 @@ slider.value = val;
 const lbl = document.getElementById(lbl-${key});
 if (lbl) lbl.textContent = ${val}%;
 });
-// Update circular mini-gauges
 document.getElementById("sleep-val").textContent = ${state.health.sleep}%;
-document.getElementById("energy-val").textContent = ${Math.round((state.health.recovery + state.health.fitness)/2)}%;
+document.getElementById("energy-val").textContent = ${Math.round((state.health.recovery + state.health.fitness) / 2)}%;
 document.getElementById("joy-val").textContent = ${state.play.creative}%;
 document.getElementById("curiosity-val").textContent = ${state.play.explore}%;
-// Quadrant totals
 const hAvg = avg(state.health);
 const wAvg = avg(state.work);
 const pAvg = avg(state.play);
@@ -593,13 +381,10 @@ document.getElementById("health-total").textContent = ${hAvg}%;
 document.getElementById("work-total").textContent = ${wAvg}%;
 document.getElementById("play-total").textContent = ${pAvg}%;
 document.getElementById("love-total").textContent = ${lAvg}%;
-// Overall alignment score
 const total = Math.round((hAvg + wAvg + pAvg + lAvg) / 4);
 document.getElementById("overall-score").textContent = BALANCE: ${total}%;
-// Tilt compass needle dynamically based on quadrant balance
 const angle = ((wAvg + lAvg) - (hAvg + pAvg)) * 1.2;
 document.getElementById("compass-needle").style.transform = rotate(${angle}deg);
-// Notes
 document.getElementById("work-note").value = state.notes.work || "";
 document.getElementById("play-note").value = state.notes.play || "";
 document.getElementById("love-note").value = state.notes.love || "";
@@ -613,10 +398,13 @@ updateUI();
 });
 });
 ["work", "play", "love"].forEach(id => {
-document.getElementById(${id}-note).addEventListener("input", (e) => {
+const noteElem = document.getElementById(${id}-note);
+if (noteElem) {
+noteElem.addEventListener("input", (e) => {
 state.notes[id] = e.target.value;
 localStorage.setItem("dyl_hud_state", JSON.stringify(state));
 });
+}
 });
 document.getElementById("reset-btn").addEventListener("click", () => {
 state = structuredClone(defaultState);
