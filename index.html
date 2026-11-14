@@ -216,7 +216,13 @@
       .center-column { grid-column: 1; grid-row: 1; }
     }
   </style>
-HEALTH
+</head>
+<body>
+  <div class="hud-wrapper">
+    <div class="hud-panel panel-health">
+      <div class="panel-header">
+        <span class="panel-title">HEALTH</span>
+
 82%
 
 
@@ -355,7 +361,23 @@ play: "Unplugged weekend nature walk & sketching",
 love: "Host dinner with close friends"
 }
 };
-let state = JSON.parse(localStorage.getItem("dyl_hud_state")) || structuredClone(defaultState);
+function cloneDefault() {
+return JSON.parse(JSON.stringify(defaultState));
+}
+function loadState() {
+try {
+const saved = localStorage.getItem("dyl_hud_state");
+return saved ? JSON.parse(saved) : cloneDefault();
+} catch (e) {
+return cloneDefault();
+}
+}
+function saveState(data) {
+try {
+localStorage.setItem("dyl_hud_state", JSON.stringify(data));
+} catch (e) {}
+}
+let state = loadState();
 function avg(obj) {
 const vals = Object.values(obj);
 return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
@@ -387,7 +409,7 @@ document.getElementById("compass-needle").style.transform = rotate(${angle}deg);
 document.getElementById("work-note").value = state.notes.work || "";
 document.getElementById("play-note").value = state.notes.play || "";
 document.getElementById("love-note").value = state.notes.love || "";
-localStorage.setItem("dyl_hud_state", JSON.stringify(state));
+saveState(state);
 }
 document.querySelectorAll('input[type="range"]').forEach(slider => {
 slider.addEventListener("input", (e) => {
@@ -401,12 +423,12 @@ const noteElem = document.getElementById(${id}-note);
 if (noteElem) {
 noteElem.addEventListener("input", (e) => {
 state.notes[id] = e.target.value;
-localStorage.setItem("dyl_hud_state", JSON.stringify(state));
+saveState(state);
 });
 }
 });
 document.getElementById("reset-btn").addEventListener("click", () => {
-state = structuredClone(defaultState);
+state = cloneDefault();
 updateUI();
 });
 updateUI();
